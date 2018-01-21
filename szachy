@@ -1,0 +1,1346 @@
+//szachy
+#include "stdafx.h"
+#include <iostream>
+#include <vector>
+#include <conio.h>
+
+using namespace std;
+
+char _plansza = '_';
+char m_pion = 'p';
+char D_pion = 'P';
+char m_kon = 'h';
+char D_kon = 'H';
+char m_wieza = 'w';
+char D_wieza = 'W';
+char m_goniec = 'g';
+char D_goniec = 'G';
+char m_krolowa = 'q';
+char D_krolowa = 'Q';
+char m_krol = 'k';
+char D_krol = 'K';
+
+struct pole
+{
+	char figura;  //rodzaj bierki
+	bool szach_pole_male;
+	bool szach_pole_duze; //szachowane pola dla malych i duzych
+};
+void wyswietl(vector<pole>& wektor)
+{
+	for (int i = 0; i < 10; i++)
+	{
+		cout << wektor[i].figura << "|";
+	}
+	cout << endl;
+}
+void wyswietl(vector<vector<pole>>& plansza)
+{
+	for (int i = 0; i < 10; i++)
+	{
+		wyswietl(plansza[i]);
+	}
+	cout << endl;
+}
+vector<vector<pole>> generuj_plansze()
+{
+	pole element;
+	vector <vector<pole>> plansza;
+	vector <pole> wiersz;
+	for (int i = 0; i < 10; i++)
+	{
+		wiersz.clear();
+		for (int j = 0; j < 10; j++)
+		{
+			element.figura = _plansza;
+			element.szach_pole_male = false;
+			element.szach_pole_duze = false;
+			wiersz.push_back(element);
+		}
+		plansza.push_back(wiersz);
+	}
+	return plansza;
+}
+vector<vector<pole>> rozmieszczenie_podst_figur(vector<vector<pole>>& szachownica)
+{
+	for (int i = 0; i < 8; i++)
+	{
+		szachownica[2][i + 1].figura = m_pion;
+		szachownica[7][i + 1].figura = D_pion;
+		szachownica[i + 1][9].figura = '=';
+		szachownica[9][i + 1].figura = '=';
+	}
+	szachownica[0][1].figura = '1';
+	szachownica[0][2].figura = '2';
+	szachownica[0][3].figura = '3';
+	szachownica[0][4].figura = '4';
+	szachownica[0][5].figura = '5';
+	szachownica[0][6].figura = '6';
+	szachownica[0][7].figura = '7';
+	szachownica[0][8].figura = '8';
+	szachownica[0][9].figura = 'Y';
+	szachownica[9][0].figura = 'X';
+	szachownica[8][0].figura = '8';
+	szachownica[7][0].figura = '7';
+	szachownica[6][0].figura = '6';
+	szachownica[5][0].figura = '5';
+	szachownica[4][0].figura = '4';
+	szachownica[3][0].figura = '3';
+	szachownica[2][0].figura = '2';
+	szachownica[1][0].figura = '1';
+	szachownica[8][0].figura = '8';
+	szachownica[0][0].figura = ' ';
+	szachownica[9][9].figura = '+';
+	szachownica[1][1].figura = m_wieza;
+	szachownica[1][8].figura = m_wieza;
+	szachownica[1][2].figura = m_kon;
+	szachownica[1][7].figura = m_kon;
+	szachownica[1][3].figura = m_goniec;
+	szachownica[1][6].figura = m_goniec;
+	szachownica[1][4].figura = m_krolowa;
+	szachownica[1][5].figura = m_krol;
+	szachownica[8][1].figura = D_wieza;
+	szachownica[8][8].figura = D_wieza;
+	szachownica[8][2].figura = D_kon;
+	szachownica[8][7].figura = D_kon;
+	szachownica[8][3].figura = D_goniec;
+	szachownica[8][6].figura = D_goniec;
+	szachownica[8][4].figura = D_krolowa;
+	szachownica[8][5].figura = D_krol;
+
+	return szachownica;
+}
+bool ruchy_figur(char figura, int a, int b, int x, int y, char pionkowe, vector<vector<pole>>& pionkowe2) // dodatkowo zablokowany pionek przed przeskakiwaniem 
+{                                                                                                         // figur w pierwszym ruchu
+	if (figura == m_pion)
+	{
+		if ((x - a == 1 && y == b && pionkowe == _plansza) || (a == 2 && x - a == 2 && y == b && pionkowe == _plansza && pionkowe2[3][y].figura == _plansza)
+			|| x - a == 1 && abs(y - b) == 1 && pionkowe != _plansza)
+			return true;
+	}
+	if (figura == D_pion)
+	{
+		if ((a - x == 1 && y == b && pionkowe == _plansza) || (a == 7 && a - x == 2 && y == b && pionkowe == _plansza && pionkowe2[6][y].figura == _plansza)
+			|| a - x == 1 && abs(y - b) == 1 && pionkowe != _plansza)
+			return true;
+	}
+	if (figura == D_wieza || figura == m_wieza)
+	{
+		if (x == a && y != b || y == b && x != a)
+			return true;
+	}
+	if (figura == D_krolowa || figura == m_krolowa)
+	{
+		if (x == a && y != b || y == b && x != a || x - y == a - b && y != b && x != a || x + y == a + b && y != b && x != a)
+			return true;
+	}
+	if (figura == D_goniec || figura == m_goniec)
+	{
+		if (x - y == a - b && y != b && x != a || x + y == a + b && y != b && x != a)
+			return true;
+	}
+	if (figura == D_krol || figura == m_krol)
+	{
+		if (abs(a - x) + abs(b - y) == 1 || (abs(a - x) + abs(b - y) == 2 && y != b && x != a))
+			return true;
+	}
+	if (figura == D_kon || figura == m_kon)
+	{
+		if (abs(a - x) + abs(b - y) == 3 && y != b && x != a)
+			return true;
+	}
+	system("cls");
+	cout << "Zly ruch, nie mozesz sie tak ruszac ta figura, sprawdz zasady gry" << endl;
+	cout << "nacisnij cokolwiek aby grac dalej" << endl;
+	cout << endl;
+	cout << "Bierki wroca do polozenia z przed tego ruchu";
+	_getch();
+
+	return false;
+}
+bool nie_bicie_swego_i_krola(char f_a, char f_z) // f_a = figura aktywna/pobierana | f_z figura zbijana 
+{
+	if ((f_a == m_pion || f_a == m_wieza || f_a == m_kon || f_a == m_krolowa || f_a == m_krol || f_a == m_goniec) &&
+		(f_z == D_goniec || f_z == D_kon || f_z == D_pion || f_z == D_krolowa || f_z == D_wieza || f_z == _plansza))
+		return true;
+	if ((f_a == D_pion || f_a == D_wieza || f_a == D_kon || f_a == D_krolowa || f_a == D_krol || f_a == D_goniec) &&
+		(f_z == m_goniec || f_z == m_kon || f_z == m_pion || f_z == m_krolowa || f_z == m_wieza || f_z == _plansza))
+		return true;
+	system("cls");
+	cout << "Nie mozna zbijac swoich figur lub krola, nacisnij cokolwiek aby grac dalej" << endl;
+	cout << endl;
+	cout << "Bierki wroca do polozenia z przed tego ruchu";
+	_getch();
+	return false;
+}
+bool czyja_tura(int licznik_tur, char f_a) // f_a figura aktywna/pobierana
+{
+	if (licznik_tur % 2 == 0)
+	{
+		if (f_a == D_pion || f_a == D_wieza || f_a == D_kon || f_a == D_krolowa || f_a == D_krol || f_a == D_goniec)
+			return true;
+	}
+	else
+	{
+		if (f_a == m_pion || f_a == m_wieza || f_a == m_kon || f_a == m_krolowa || f_a == m_krol || f_a == m_goniec)
+			return true;
+	}
+	system("cls");
+	cout << "Nie jest twoj ruch, nacisnij cokolwiek aby grac dalej, sprawdz czyj ruch, " << endl;
+	cout << "na dole masz napisane czyja kolej";
+	_getch();
+	return false;
+}
+bool stop_latanie(char figura, vector <vector<pole>> szachownica, int a, int b, int x, int y) // zablokowanie pionka w ruchy_figur bo wygodniej
+{                                                                                             // a konia i krola nie trzeba blokowac
+	if (figura == D_wieza || figura == m_wieza)
+	{
+		if (a > x) // ruch w gore
+		{
+			for (int i = a - 1; i > x; i--)
+			{
+				if (szachownica[i][b].figura != _plansza)
+					return true;
+			}
+		}
+		if (x > a) // ruch w dol
+		{
+			for (int i = a + 1; i < x; i++)
+			{
+				if (szachownica[i][b].figura != _plansza)
+					return true;
+			}
+		}
+		if (y > b) //  ruch w prawo
+		{
+			for (int i = b + 1; i < y; i++)
+			{
+				if (szachownica[a][i].figura != _plansza)
+					return true;
+			}
+		}
+		if (b > y) // ruch w lewo
+		{
+			for (int i = b - 1; i > y; i--)
+			{
+				if (szachownica[a][i].figura != _plansza)
+					return true;
+			}
+		}
+	}
+	if (figura == D_goniec || figura == m_goniec)
+	{
+		if (x > a && y > b) // ruch w prawy dol
+		{
+			int i = a + 1;
+			int j = b + 1;
+			while (i < x)
+			{
+				if (szachownica[i][j].figura != _plansza)
+					return true;
+				i++;
+				j++;
+			}
+		}
+		if (x > a && y < b) // ruch w lewy dol
+		{
+			int i = a + 1;
+			int j = b - 1;
+			while (i < x)
+			{
+				if (szachownica[i][j].figura != _plansza)
+					return true;
+				i++;
+				j--;
+			}
+		}
+		if (x < a && y < b) // ruch w lewa gore;
+		{
+			int i = a - 1;
+			int j = b - 1;
+			while (i > x)
+			{
+				if (szachownica[i][j].figura != _plansza)
+					return true;
+				i--;
+				j--;
+			}
+		}
+		if (x < a && y > b) // ruch w prawa gore
+		{
+			int i = a - 1;
+			int j = b + 1;
+			while (i > x)
+			{
+				if (szachownica[i][j].figura != _plansza)
+					return true;
+				i--;
+				j++;
+			}
+		}
+	}
+	if (figura == D_krolowa || figura == m_krolowa)
+	{
+		if (x != a && y != b) //jak sie krolowa rusza, czy jak wieza czy jak goniec
+		{
+			if (x > a && y > b) // ruch w prawy dol
+			{
+				int i = a + 1;
+				int j = b + 1;
+				while (i < x)
+				{
+					if (szachownica[i][j].figura != _plansza)
+						return true;
+					i++;
+					j++;
+				}
+			}
+			if (x > a && y < b) // ruch w lewy dol
+			{
+				int i = a + 1;
+				int j = b - 1;
+				while (i < x)
+				{
+					if (szachownica[i][j].figura != _plansza)
+						return true;
+					i++;
+					j--;
+				}
+			}
+			if (x < a && y < b) // ruch w lewa gore;
+			{
+				int i = a - 1;
+				int j = b - 1;
+				while (i > x)
+				{
+					if (szachownica[i][j].figura != _plansza)
+						return true;
+					i--;
+					j--;
+				}
+			}
+			if (x < a && y > b) // ruch w prawa gore
+			{
+				int i = a - 1;
+				int j = b + 1;
+				while (i > x)
+				{
+					if (szachownica[i][j].figura != _plansza)
+						return true;
+					i--;
+					j++;
+				}
+			}
+		}
+		else
+		{
+			if (a > x) // ruch w gore
+			{
+				for (int i = a - 1; i > x; i--)
+				{
+					if (szachownica[i][b].figura != _plansza)
+						return true;
+				}
+			}
+			if (x > a) // ruch w dol
+			{
+				for (int i = a + 1; i < x; i++)
+				{
+					if (szachownica[i][b].figura != _plansza)
+						return true;
+				}
+			}
+			if (y > b) //  ruch w prawo
+			{
+				for (int i = b + 1; i < y; i++)
+				{
+					if (szachownica[a][i].figura != _plansza)
+						return true;
+				}
+			}
+			if (b > y) // ruch w lewo
+			{
+				for (int i = b - 1; i > y; i--)
+				{
+					if (szachownica[a][i].figura != _plansza)
+						return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+void promocja_pionka(char & figura, int x)
+{
+	bool zamykacz = true;
+	char wybor;
+	if (figura == D_pion)
+	{
+		if (x == 1)
+		{
+			system("cls");
+			cout << "Dotarles pionkiem na koniec planszy, mozesz wymienic go" << endl;
+			cout << "na krolowa, wieze, gonca lub krola, polecam krolowa" << endl;
+			cout << endl;
+			cout << "Aby wybrac krolowa nacisnij q na klawiaturze" << endl;
+			cout << "Aby wybrac wieze nacisnij w na klawiaturze" << endl;
+			cout << "Aby wybrac konia nacisnij h na klawiaturze" << endl;
+			cout << "Aby wybrac gonca nacisnij g na klawiaturze" << endl;
+			do
+			{
+				wybor = _getch();
+				switch (wybor)
+				{
+				case 113: //q
+					figura = D_krolowa;
+					zamykacz = false;
+					break;
+				case 119: //w
+					figura = D_wieza;
+					zamykacz = false;
+					break;
+				case 104: //h
+					figura = D_kon;
+					zamykacz = false;
+					break;
+				case 103: //g
+					figura = D_goniec;
+					zamykacz = false;
+					break;
+				}
+			} while (zamykacz);
+		}
+	}
+	if (figura == m_pion)
+	{
+		if (x == 8)
+		{
+			system("cls");
+			cout << "Dotarles pionkiem na koniec planszy, mozesz wymienic go" << endl;
+			cout << "na krolowa, wieze, gonca lub krola, polecam krolowa" << endl;
+			cout << endl;
+			cout << "Aby wybrac krolowa nacisnij q na klawiaturze" << endl;
+			cout << "Aby wybrac wieze nacisnij w na klawiaturze" << endl;
+			cout << "Aby wybrac konia nacisnij h na klawiaturze" << endl;
+			cout << "Aby wybrac gonca nacisnij g na klawiaturze" << endl;
+			do
+			{
+				wybor = _getch();
+				switch (wybor)
+				{
+				case 113: //q
+					figura = m_krolowa;
+					zamykacz = false;
+					break;
+				case 119: //w
+					figura = m_wieza;
+					zamykacz = false;
+					break;
+				case 104: //h
+					figura = m_kon;
+					zamykacz = false;
+					break;
+				case 103: //g
+					figura = m_goniec;
+					zamykacz = false;
+					break;
+				}
+			} while (zamykacz);
+		}
+	}
+}
+void szachowanie_pol(vector<vector <pole>> & szachownica) // strasznie tu kiepsko 
+{
+	for (int i = 1; i < 9; i++)
+	{
+		for (int j = 1; j < 9; j++)
+		{
+			if (szachownica[i][j].figura == D_pion) // plansza jest 10x10 wiec i tak nie wyjdzie pionkom i krolom za zakres
+			{
+				szachownica[i - 1][j + 1].szach_pole_duze = true;
+				szachownica[i - 1][j - 1].szach_pole_duze = true;
+			}
+			if (szachownica[i][j].figura == m_pion)
+			{
+				szachownica[i + 1][j + 1].szach_pole_male = true;
+				szachownica[i + 1][j - 1].szach_pole_male = true;
+			}
+			if (szachownica[i][j].figura == m_krol)
+			{
+				szachownica[i + 1][j + 1].szach_pole_male = true;
+				szachownica[i + 1][j - 1].szach_pole_male = true;
+				szachownica[i - 1][j + 1].szach_pole_male = true;
+				szachownica[i - 1][j - 1].szach_pole_male = true;
+				szachownica[i][j + 1].szach_pole_male = true;
+				szachownica[i][j - 1].szach_pole_male = true;
+				szachownica[i - 1][j].szach_pole_male = true;
+				szachownica[i + 1][j].szach_pole_male = true;
+			}
+			if (szachownica[i][j].figura == D_krol)
+			{
+				szachownica[i + 1][j + 1].szach_pole_duze = true;
+				szachownica[i + 1][j - 1].szach_pole_duze = true;
+				szachownica[i - 1][j + 1].szach_pole_duze = true;
+				szachownica[i - 1][j - 1].szach_pole_duze = true;
+				szachownica[i][j + 1].szach_pole_duze = true;
+				szachownica[i][j - 1].szach_pole_duze = true;
+				szachownica[i - 1][j].szach_pole_duze = true;
+				szachownica[i + 1][j].szach_pole_duze = true;
+			}
+			if (szachownica[i][j].figura == D_wieza)
+			{
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i + k][j].figura != _plansza)
+					{
+						szachownica[i + k][j].szach_pole_duze = true;
+						break;
+					}
+					szachownica[i + k][j].szach_pole_duze = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i][j + k].figura != _plansza)
+					{
+						szachownica[i][j + k].szach_pole_duze = true;
+						break;
+					}
+					szachownica[i][j + k].szach_pole_duze = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i - k][j].figura != _plansza)
+					{
+						szachownica[i - k][j].szach_pole_duze = true;
+						break;
+					}
+					szachownica[i - k][j].szach_pole_duze = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i][j - k].figura != _plansza)
+					{
+						szachownica[i][j - k].szach_pole_duze = true;
+						break;
+					}
+					szachownica[i][j - k].szach_pole_duze = true;
+				}
+			}
+			if (szachownica[i][j].figura == m_wieza)
+			{
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i + k][j].figura != _plansza)
+					{
+						szachownica[i + k][j].szach_pole_male = true;
+						break;
+					}
+					szachownica[i + k][j].szach_pole_male = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i][j + k].figura != _plansza)
+					{
+						szachownica[i][j + k].szach_pole_male = true;
+						break;
+					}
+					szachownica[i][j + k].szach_pole_male = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i - k][j].figura != _plansza)
+					{
+						szachownica[i - k][j].szach_pole_male = true;
+						break;
+					}
+					szachownica[i - k][j].szach_pole_male = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i][j - k].figura != _plansza)
+					{
+						szachownica[i][j - k].szach_pole_male = true;
+						break;
+					}
+					szachownica[i][j - k].szach_pole_male = true;
+				}
+			}
+			if (szachownica[i][j].figura == D_kon)
+			{
+				if (j - 2 > 0)
+				{
+					szachownica[i + 1][j - 2].szach_pole_duze = true;
+					szachownica[i - 1][j - 2].szach_pole_duze = true;
+				}
+				if (j + 2 < 9)
+				{
+					szachownica[i + 1][j + 2].szach_pole_duze = true;
+					szachownica[i - 1][j + 2].szach_pole_duze = true;
+				}
+				if (i + 2 < 9)
+				{
+					szachownica[i + 2][j + 1].szach_pole_duze = true;
+					szachownica[i + 2][j - 1].szach_pole_duze = true;
+				}
+				if (i - 2 > 0)
+				{
+					szachownica[i - 2][j + 1].szach_pole_duze = true;
+					szachownica[i - 2][j - 1].szach_pole_duze = true;
+				}
+			}
+			if (szachownica[i][j].figura == m_kon)
+			{
+				if (j - 2 > 0)
+				{
+					szachownica[i + 1][j - 2].szach_pole_male = true;
+					szachownica[i - 1][j - 2].szach_pole_male = true;
+				}
+				if (j + 2 < 9)
+				{
+					szachownica[i + 1][j + 2].szach_pole_male = true;
+					szachownica[i - 1][j + 2].szach_pole_male = true;
+				}
+				if (i + 2 < 9)
+				{
+					szachownica[i + 2][j + 1].szach_pole_male = true;
+					szachownica[i + 2][j - 1].szach_pole_male = true;
+				}
+				if (i - 2 > 0)
+				{
+					szachownica[i - 2][j + 1].szach_pole_male = true;
+					szachownica[i - 2][j - 1].szach_pole_male = true;
+				}
+			}
+
+			if (szachownica[i][j].figura == m_goniec)
+			{
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i - k][j - k].figura != _plansza)
+					{
+						szachownica[i - k][j - k].szach_pole_male = true;
+						break;
+					}
+					szachownica[i - k][j - k].szach_pole_male = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i + k][j - k].figura != _plansza)
+					{
+						szachownica[i + k][j - k].szach_pole_male = true;
+						break;
+					}
+					szachownica[i + k][j - k].szach_pole_male = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i + k][j + k].figura != _plansza)
+					{
+						szachownica[i + k][j + k].szach_pole_male = true;
+						break;
+					}
+					szachownica[i + k][j + k].szach_pole_male = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i - k][j + k].figura != _plansza)
+					{
+						szachownica[i - k][j + k].szach_pole_male = true;
+						break;
+					}
+					szachownica[i - k][j + k].szach_pole_male = true;
+				}
+			}
+			if (szachownica[i][j].figura == D_goniec)
+			{
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i - k][j - k].figura != _plansza)
+					{
+						szachownica[i - k][j - k].szach_pole_duze = true;
+						break;
+					}
+					szachownica[i - k][j - k].szach_pole_duze = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i + k][j - k].figura != _plansza)
+					{
+						szachownica[i + k][j - k].szach_pole_duze = true;
+						break;
+					}
+					szachownica[i + k][j - k].szach_pole_duze = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i + k][j + k].figura != _plansza)
+					{
+						szachownica[i + k][j + k].szach_pole_duze = true;
+						break;
+					}
+					szachownica[i + k][j + k].szach_pole_duze = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i - k][j + k].figura != _plansza)
+					{
+						szachownica[i - k][j + k].szach_pole_duze = true;
+						break;
+					}
+					szachownica[i - k][j + k].szach_pole_duze = true;
+				}
+			}
+			if (szachownica[i][j].figura == D_krolowa)
+			{
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i - k][j - k].figura != _plansza)
+					{
+						szachownica[i - k][j - k].szach_pole_duze = true;
+						break;
+					}
+					szachownica[i - k][j - k].szach_pole_duze = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i + k][j - k].figura != _plansza)
+					{
+						szachownica[i + k][j - k].szach_pole_duze = true;
+						break;
+					}
+					szachownica[i + k][j - k].szach_pole_duze = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i + k][j + k].figura != _plansza)
+					{
+						szachownica[i + k][j + k].szach_pole_duze = true;
+						break;
+					}
+					szachownica[i + k][j + k].szach_pole_duze = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i - k][j + k].figura != _plansza)
+					{
+						szachownica[i - k][j + k].szach_pole_duze = true;
+						break;
+					}
+					szachownica[i - k][j + k].szach_pole_duze = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i + k][j].figura != _plansza)
+					{
+						szachownica[i + k][j].szach_pole_duze = true;
+						break;
+					}
+					szachownica[i + k][j].szach_pole_duze = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i][j + k].figura != _plansza)
+					{
+						szachownica[i][j + k].szach_pole_duze = true;
+						break;
+					}
+					szachownica[i][j + k].szach_pole_duze = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i - k][j].figura != _plansza)
+					{
+						szachownica[i - k][j].szach_pole_duze = true;
+						break;
+					}
+					szachownica[i - k][j].szach_pole_duze = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i][j - k].figura != _plansza)
+					{
+						szachownica[i][j - k].szach_pole_duze = true;
+						break;
+					}
+					szachownica[i][j - k].szach_pole_duze = true;
+				}
+			}
+			if (szachownica[i][j].figura == m_krolowa)
+			{
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i - k][j - k].figura != _plansza)
+					{
+						szachownica[i - k][j - k].szach_pole_male = true;
+						break;
+					}
+					szachownica[i - k][j - k].szach_pole_male = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i + k][j - k].figura != _plansza)
+					{
+						szachownica[i + k][j - k].szach_pole_male = true;
+						break;
+					}
+					szachownica[i + k][j - k].szach_pole_male = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i + k][j + k].figura != _plansza)
+					{
+						szachownica[i + k][j + k].szach_pole_male = true;
+						break;
+					}
+					szachownica[i + k][j + k].szach_pole_male = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i - k][j + k].figura != _plansza)
+					{
+						szachownica[i - k][j + k].szach_pole_male = true;
+						break;
+					}
+					szachownica[i - k][j + k].szach_pole_male = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i + k][j].figura != _plansza)
+					{
+						szachownica[i + k][j].szach_pole_male = true;
+						break;
+					}
+					szachownica[i + k][j].szach_pole_male = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i][j + k].figura != _plansza)
+					{
+						szachownica[i][j + k].szach_pole_male = true;
+						break;
+					}
+					szachownica[i][j + k].szach_pole_male = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i - k][j].figura != _plansza)
+					{
+						szachownica[i - k][j].szach_pole_male = true;
+						break;
+					}
+					szachownica[i - k][j].szach_pole_male = true;
+				}
+				for (int k = 1; k < 8; k++)
+				{
+					if (szachownica[i][j - k].figura != _plansza)
+					{
+						szachownica[i][j - k].szach_pole_male = true;
+						break;
+					}
+					szachownica[i][j - k].szach_pole_male = true;
+				}
+			}
+		}
+	}
+}
+void zerujaca_pola_szachowane(vector<vector<pole>> & szachownica)
+{
+	for (int i = 0; i < 10; i++)
+	{
+		for (int j = 0; j < 10; j++)
+		{
+			szachownica[i][j].szach_pole_male = false;
+			szachownica[i][j].szach_pole_duze = false;
+		}
+	}
+}
+void sprawdz_czy_szach(vector<vector<pole>> szachownica, int licznik, char figura)
+{
+	for (int i = 1; i < 9; i++)
+	{
+		for (int j = 1; j < 9; j++)
+		{
+			if (szachownica[i][j].figura == D_krol && szachownica[i][j].szach_pole_male == true && licznik % 2 == 1)
+			{
+				system("cls");
+				cout << "Szachowany duzy krol, nacisnij cokolwiek aby kontynuowac";
+				_getch();
+			}
+			if (szachownica[i][j].figura == m_krol && szachownica[i][j].szach_pole_duze == true && licznik % 2 == 0)
+			{
+				system("cls");
+				cout << "Szachowany maly krol, nacisnij cokolwiek aby kontynuowac";
+				_getch();
+			}
+		}
+	}
+}
+bool krol_odkrywa_sie(vector<vector<pole>> szachownica, int licznik)
+{
+	for (int i = 1; i < 9; i++)
+	{
+		for (int j = 1; j < 9; j++)
+		{
+			if (szachownica[i][j].figura == D_krol && szachownica[i][j].szach_pole_male == true && licznik % 2 == 0)
+			{
+				system("cls");
+				cout << "Nie mozesz odkryc krola na pole szachowane " << endl;
+				cout << " lub ruszyc sie krolem na nie, nacisnij cokolwiek aby grac dalej" << endl;
+				cout << " figury cofna sie do polozenia sprzed tego ruchu";
+				_getch();
+				return true;
+			}
+			if (szachownica[i][j].figura == m_krol && szachownica[i][j].szach_pole_duze == true && licznik % 2 == 1)
+			{
+				system("cls");
+				cout << "Nie mozesz odkryc krola na pole szachowane " << endl;
+				cout << " lub ruszyc sie krolem na nie, nacisnij cokolwiek aby grac dalej" << endl;
+				cout << " figury cofna sie do polozenia sprzed tego ruchu";
+				_getch();
+				return true;
+			}
+		}
+	}
+	return false;
+}
+bool roszada(vector<vector<vector<pole>>> historia_gry, int licznik, vector<vector<pole>> & szachownica)
+{
+	if (historia_gry[licznik - 1][1][8].figura == m_wieza && historia_gry[licznik - 1][1][5].figura == m_krol && szachownica[1][7].figura == _plansza &&
+		szachownica[1][6].figura == _plansza && licznik % 2 == 1 && szachownica[1][7].szach_pole_duze == false && szachownica[1][6].szach_pole_duze == false)
+	{
+		for (int i = 0; i < licznik; i++)
+		{
+			if (historia_gry[i][1][8].figura != m_wieza || historia_gry[i][1][5].figura != m_krol)
+			{
+				return false;
+			}
+		}
+		szachownica[1][7].figura = m_krol;
+		szachownica[1][6].figura = m_wieza;
+		szachownica[1][8].figura = _plansza;
+		szachownica[1][5].figura = _plansza;
+		return true;
+	}
+	if (historia_gry[licznik - 1][1][1].figura == m_wieza && historia_gry[licznik - 1][1][5].figura == m_krol && szachownica[1][2].figura == _plansza &&
+		szachownica[1][3].figura == _plansza && licznik % 2 == 1 && szachownica[1][7].szach_pole_duze == false && szachownica[1][6].szach_pole_duze == false
+		&& szachownica[1][4].figura == _plansza && szachownica[1][4].szach_pole_duze == false)
+	{
+		for (int i = 0; i < licznik; i++)
+		{
+			if (historia_gry[i][1][1].figura != m_wieza || historia_gry[i][1][5].figura != m_krol)
+			{
+				return false;
+			}
+		}
+		szachownica[1][3].figura = m_krol;
+		szachownica[1][4].figura = m_wieza;
+		szachownica[1][5].figura = _plansza;
+		szachownica[1][2].figura = _plansza;
+		szachownica[1][1].figura = _plansza;
+		return true;
+	}
+	if (historia_gry[licznik - 1][8][8].figura == D_wieza && historia_gry[licznik - 1][8][5].figura == D_krol && szachownica[8][7].figura == _plansza &&
+		szachownica[8][6].figura == _plansza && licznik % 2 == 0 && szachownica[8][7].szach_pole_male == false && szachownica[8][6].szach_pole_male == false)
+	{
+		for (int i = 0; i < licznik; i++)
+		{
+			if (historia_gry[i][8][8].figura != D_wieza || historia_gry[i][8][5].figura != D_krol)
+			{
+				return false;
+			}
+		}
+		szachownica[8][7].figura = D_krol;
+		szachownica[8][6].figura = D_wieza;
+		szachownica[8][8].figura = _plansza;
+		szachownica[8][5].figura = _plansza;
+		return true;
+	}
+	if (historia_gry[licznik - 1][8][1].figura == D_wieza && historia_gry[licznik - 1][8][5].figura == D_krol && szachownica[8][2].figura == _plansza &&
+		szachownica[8][3].figura == _plansza && licznik % 2 == 0 && szachownica[8][7].szach_pole_male == false && szachownica[8][6].szach_pole_male == false
+		&& szachownica[8][4].figura == _plansza && szachownica[8][4].szach_pole_male == false)
+	{
+		for (int i = 0; i < licznik; i++)
+		{
+			if (historia_gry[i][8][1].figura != D_wieza || historia_gry[i][8][5].figura != D_krol)
+			{
+				return false;
+			}
+		}
+		szachownica[8][3].figura = D_krol;
+		szachownica[8][4].figura = D_wieza;
+		szachownica[8][5].figura = _plansza;
+		szachownica[8][2].figura = _plansza;
+		szachownica[8][1].figura = _plansza;
+		return true;
+	}
+	return false;
+}
+bool maly_krol_sprawdzanie_okolicy(vector<vector<pole>>  szachownica, int i, int j)
+{
+	if ((szachownica[i + 1][j + 1].szach_pole_duze == true || (i + 1 > 8 || j + 1 > 8) || (szachownica[i + 1][j + 1].figura == m_pion ||
+		szachownica[i + 1][j + 1].figura == m_kon || szachownica[i + 1][j + 1].figura == m_wieza || szachownica[i + 1][j + 1].figura == m_krolowa ||
+		szachownica[i + 1][j + 1].figura == m_goniec)) &&
+		(szachownica[i + 1][j - 1].szach_pole_duze == true || (i + 1 > 8 || j - 1 < 1) || (szachownica[i + 1][j - 1].figura == m_pion ||
+		szachownica[i + 1][j - 1].figura == m_kon || szachownica[i + 1][j - 1].figura == m_wieza || szachownica[i + 1][j - 1].figura == m_krolowa ||
+		szachownica[i + 1][j - 1].figura == m_goniec)) &&
+		(szachownica[i - 1][j + 1].szach_pole_duze == true || (i - 1 < 1 || j + 1 > 8) || (szachownica[i - 1][j + 1].figura == m_pion ||
+		szachownica[i - 1][j + 1].figura == m_kon || szachownica[i - 1][j + 1].figura == m_wieza || szachownica[i - 1][j + 1].figura == m_krolowa ||
+		szachownica[i - 1][j + 1].figura == m_goniec)) &&
+		(szachownica[i - 1][j - 1].szach_pole_duze == true || (i - 1 < 1 || j - 1 < 1) || (szachownica[i - 1][j - 1].figura == m_pion ||
+		szachownica[i - 1][j - 1].figura == m_kon || szachownica[i - 1][j - 1].figura == m_wieza || szachownica[i - 1][j - 1].figura == m_krolowa ||
+		szachownica[i - 1][j - 1].figura == m_goniec)) &&
+		(szachownica[i][j + 1].szach_pole_duze == true || (j + 1 > 8) || (szachownica[i][j + 1].figura == m_pion ||
+		szachownica[i][j + 1].figura == m_kon || szachownica[i][j + 1].figura == m_wieza || szachownica[i][j + 1].figura == m_krolowa ||
+		szachownica[i][j + 1].figura == m_goniec)) &&
+		(szachownica[i][j - 1].szach_pole_duze == true || (j - 1 < 1) || (szachownica[i][j - 1].figura == m_pion ||
+		szachownica[i][j - 1].figura == m_kon || szachownica[i][j - 1].figura == m_wieza || szachownica[i][j - 1].figura == m_krolowa ||
+		szachownica[i][j - 1].figura == m_goniec)) &&
+		(szachownica[i - 1][j].szach_pole_duze == true || (i - 1 < 1) || (szachownica[i - 1][j].figura == m_pion ||
+		szachownica[i - 1][j].figura == m_kon || szachownica[i - 1][j].figura == m_wieza || szachownica[i - 1][j].figura == m_krolowa ||
+		szachownica[i - 1][j].figura == m_goniec)) &&
+		(szachownica[i + 1][j].szach_pole_duze == true || (i + 1 > 8) || (szachownica[i + 1][j].figura == m_pion ||
+		szachownica[i + 1][j].figura == m_kon || szachownica[i + 1][j].figura == m_wieza || szachownica[i + 1][j].figura == m_krolowa ||
+		szachownica[i + 1][j].figura == m_goniec)))
+		return true;
+	return false;
+}
+bool duzy_krol_sprawdzenie_okolicy(vector<vector<pole>>  szachownica, int i, int j)
+{
+	if ((szachownica[i + 1][j + 1].szach_pole_male == true || (i + 1 > 8 || j + 1 > 8) || (szachownica[i + 1][j + 1].figura == D_pion ||
+		szachownica[i + 1][j + 1].figura == D_kon || szachownica[i + 1][j + 1].figura == D_wieza || szachownica[i + 1][j + 1].figura == D_krolowa ||
+		szachownica[i + 1][j + 1].figura == D_goniec)) &&
+		(szachownica[i + 1][j - 1].szach_pole_male == true || (i + 1 > 8 || j - 1 < 1) || (szachownica[i + 1][j - 1].figura == D_pion ||
+		szachownica[i + 1][j - 1].figura == D_kon || szachownica[i + 1][j - 1].figura == D_wieza || szachownica[i + 1][j - 1].figura == D_krolowa ||
+		szachownica[i + 1][j - 1].figura == D_goniec)) &&
+		(szachownica[i - 1][j + 1].szach_pole_male == true || (i - 1 < 1 || j + 1 > 8) || (szachownica[i - 1][j + 1].figura == D_pion ||
+		szachownica[i - 1][j + 1].figura == D_kon || szachownica[i - 1][j + 1].figura == D_wieza || szachownica[i - 1][j + 1].figura == D_krolowa ||
+		szachownica[i - 1][j + 1].figura == D_goniec)) &&
+		(szachownica[i - 1][j - 1].szach_pole_male == true || (i - 1 < 1 || j - 1 < 1) || (szachownica[i - 1][j - 1].figura == D_pion ||
+		szachownica[i - 1][j - 1].figura == D_kon || szachownica[i - 1][j - 1].figura == D_wieza || szachownica[i - 1][j - 1].figura == D_krolowa ||
+		szachownica[i - 1][j - 1].figura == D_goniec)) &&
+		(szachownica[i][j + 1].szach_pole_male == true || (j + 1 > 8) || (szachownica[i][j + 1].figura == D_pion ||
+		szachownica[i][j + 1].figura == D_kon || szachownica[i][j + 1].figura == D_wieza || szachownica[i][j + 1].figura == D_krolowa ||
+		szachownica[i][j + 1].figura == D_goniec)) &&
+		(szachownica[i][j - 1].szach_pole_male == true || (j - 1 < 1) || (szachownica[i][j - 1].figura == D_pion ||
+		szachownica[i][j - 1].figura == D_kon || szachownica[i][j - 1].figura == D_wieza || szachownica[i][j - 1].figura == D_krolowa ||
+		szachownica[i][j - 1].figura == D_goniec)) &&
+		(szachownica[i - 1][j].szach_pole_male == true || (i - 1 < 1) || (szachownica[i - 1][j].figura == D_pion ||
+		szachownica[i - 1][j].figura == D_kon || szachownica[i - 1][j].figura == D_wieza || szachownica[i - 1][j].figura == D_krolowa ||
+		szachownica[i - 1][j].figura == D_goniec)) &&
+		(szachownica[i + 1][j].szach_pole_male == true || (i + 1 > 8) || (szachownica[i + 1][j].figura == D_pion ||
+		szachownica[i + 1][j].figura == D_kon || szachownica[i + 1][j].figura == D_wieza || szachownica[i + 1][j].figura == D_krolowa ||
+		szachownica[i + 1][j].figura == D_goniec)))
+		return true;
+	return false;
+}
+bool sprawdz_czy_mat(vector<vector<pole>>  szachownica)
+{
+	for (int i = 1; i < 9; i++)
+	{
+		for (int j = 1; j < 9; j++)
+		{
+			if (szachownica[i][j].figura == D_krol)
+			{
+				if (szachownica[i][j].szach_pole_male == true && duzy_krol_sprawdzenie_okolicy(szachownica, i, j))
+				{
+					return true;
+				}
+			}
+			if (szachownica[i][j].figura == m_krol)
+			{
+				if (szachownica[i][j].szach_pole_duze == true && maly_krol_sprawdzanie_okolicy(szachownica, i, j))
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+bool sprawdz_szachownice_do_pata_male(vector<vector<pole>>  szachownica)
+{
+	for (int i = 1; i < 9; i++)
+	{
+		for (int j = 1; j < 9; j++)
+		{
+			if (szachownica[i][j].figura == m_goniec || szachownica[i][j].figura == m_wieza || szachownica[i][j].figura == m_krolowa || szachownica[i][j].figura == m_kon)
+				return false;
+		}
+	}
+	return true;
+}
+bool sprawdz_szachownice_do_pata_duze(vector<vector<pole>>  szachownica)
+{
+	for (int i = 1; i < 9; i++)
+	{
+		for (int j = 1; j < 9; j++)
+		{
+			if (szachownica[i][j].figura == D_goniec || szachownica[i][j].figura == D_wieza || szachownica[i][j].figura == D_krolowa || szachownica[i][j].figura == D_kon)
+				return false;
+		}
+	}
+	return true;
+}
+bool sprawdz_czy_pat(vector<vector<pole>>  szachownica)
+{
+	for (int a = 1; a < 9; a++)
+	{
+		for (int b = 1; b < 9; b++)
+		{
+			if (szachownica[a][b].figura == D_pion && (szachownica[a + 1][b].figura == _plansza || szachownica[a + 1][b - 1].figura == m_kon ||
+				szachownica[a + 1][b - 1].figura == m_pion || szachownica[a + 1][b - 1].figura == m_krolowa || szachownica[a + 1][b - 1].figura == m_goniec
+				|| szachownica[a + 1][b - 1].figura == m_wieza || szachownica[a + 1][b + 1].figura == m_kon ||
+				szachownica[a + 1][b + 1].figura == m_pion || szachownica[a + 1][b + 1].figura == m_krolowa || szachownica[a + 1][b + 1].figura == m_goniec
+				|| szachownica[a + 1][b + 1].figura == m_wieza))
+			{
+				for (int i = 1; i < 9; i++)
+				{
+					for (int j = 1; j < 9; j++)
+					{
+						if (szachownica[i][j].figura == D_krol)
+						{
+							if (duzy_krol_sprawdzenie_okolicy(szachownica, i, j))
+							{
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	for (int a = 1; a < 9; a++)
+	{
+		for (int b = 1; b < 9; b++)
+		{
+			if (szachownica[a][b].figura == m_pion && (szachownica[a + 1][b].figura == _plansza || szachownica[a + 1][b - 1].figura == D_kon ||
+				szachownica[a + 1][b - 1].figura == D_pion || szachownica[a + 1][b - 1].figura == D_krolowa || szachownica[a + 1][b - 1].figura == D_goniec
+				|| szachownica[a + 1][b - 1].figura == D_wieza || szachownica[a + 1][b + 1].figura == D_kon ||
+				szachownica[a + 1][b + 1].figura == D_pion || szachownica[a + 1][b + 1].figura == D_krolowa || szachownica[a + 1][b + 1].figura == D_goniec
+				|| szachownica[a + 1][b + 1].figura == D_wieza))
+			{
+				return false;
+			}
+		}
+	}
+	for (int i = 1; i < 9; i++)
+	{
+		for (int j = 1; j < 9; j++)
+		{
+			if (szachownica[i][j].figura == m_krol)
+			{
+				if (maly_krol_sprawdzanie_okolicy(szachownica, i, j))
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+int sterowanie(int & wyjscie)
+{
+	int x = 5;  //"chodzenie"
+	int y = 5;
+	int licznik = 0; // zmienna do tur
+	pole pom, ruch; // zmienne pomocnicze do prouszania sie
+	vector<vector<pole>> szachownica = rozmieszczenie_podst_figur(generuj_plansze());
+	vector<vector<vector<pole>>> historia_gry;
+	int a, b; // zmienne do zapamietania pozycji
+	while (wyjscie == 0)
+	{
+		pom.figura = szachownica[x][y].figura;
+		szachownica[x][y].figura = '#'; // "chodzenie" kratka
+		system("cls"); // ilzuja ruchow dzieki czyszczeniu konsoli
+		wyswietl(szachownica);
+		if (pom.figura != _plansza)
+			cout << "Pozycja x,y: " << x << "," << y << " jest tu figura: " << pom.figura << endl;
+		else
+			cout << "Pozycja x,y: " << x << "," << y << endl;
+		if (licznik % 2 == 0)
+			cout << "Ruch duzych";
+		else
+			cout << "Ruch malych";
+		szachownica[x][y].figura = pom.figura;
+		char przycisk = _getch(); // pobieranie klawisza z klawiatury 
+		switch (przycisk)
+		{
+		case 72: //W GORE
+			if (x > 1)
+				x--;
+			break;
+		case 80: //W DOL
+			if (x < 8)
+				x++;
+			break;
+		case 75: //W LEWO
+			if (y > 1)
+				y--;
+			break;
+		case 77: //W PRAWO
+			if (y < 8)
+				y++;
+			break;
+		case 27: //ESC
+			wyjscie = 1;
+			break;
+		case 13: //ENTER
+			ruch.figura = szachownica[x][y].figura; // do zmiennej pom. zapisanie figury
+			a = x; // zapisanie pozycji figury
+			b = y;
+			if (ruch.figura == _plansza) // nie zabieranie pustych pol
+			{
+				system("cls");
+				cout << "Nie mozesz ruszac sie plansza, nacisnij cokolwiek aby grac dalej," << endl;
+				cout << "Mozna ruszac sie tylko bierkami";
+				_getch();
+				break;
+			}
+			if (!czyja_tura(licznik, ruch.figura)) // nie wezmie figury jesli bedzie zła tura :D
+			{
+				szachownica[a][b].figura = ruch.figura; // podmianka
+				break;
+			}
+			szachownica[x][y].figura = _plansza;
+			przycisk = 72;
+			while (przycisk != 13)
+			{
+				pom.figura = szachownica[x][y].figura;
+				szachownica[x][y].figura = ruch.figura;
+				system("cls"); // iluzja ruchow dzieki czyszczeniu konsoli
+				wyswietl(szachownica);
+				cout << "Pozycja x,y: " << x << "," << y << endl;
+				cout << "Pobrano figure: " << ruch.figura << ", z pola " << a << ", " << b;
+				szachownica[x][y].figura = pom.figura;
+				przycisk = _getch(); // pobieranie klawisza z klawiatury 
+				switch (przycisk)
+				{
+				case 72: //W GORE
+					if (x > 1)
+						x--;
+					break;
+				case 80: //W DOL
+					if (x < 8)
+						x++;
+					break;
+				case 75: //W LEWO
+					if (y > 1)
+						y--;
+					break;
+				case 77: //W PRAWO
+					if (y < 8)
+						y++;
+					break;
+				case 27: //ESC
+					szachownica[a][b].figura = ruch.figura; //cofniecie figury na stare miejsce
+					przycisk = 13;
+					break;
+				case 13: //ENTER
+					if ((ruch.figura == m_krol && x == 1 && y == 7) || (ruch.figura == m_krol && x == 1 && y == 3) ||
+						(ruch.figura == D_krol && x == 8 && y == 3) || (ruch.figura == D_krol && x == 8 && y == 7))
+					{
+						if (roszada(historia_gry, licznik, szachownica))
+						{
+							historia_gry.push_back(szachownica);
+							licznik++;
+							break;
+						}
+					}
+					if (!ruchy_figur(ruch.figura, a, b, x, y, szachownica[x][y].figura, szachownica)) // poprawnosc ruchow figur
+					{
+						szachownica[a][b].figura = ruch.figura;
+						break;
+					}
+					if (stop_latanie(ruch.figura, szachownica, a, b, x, y))
+					{
+						system("cls");
+						cout << "Zly ruch, nie mozesz sie tak ruszac ta figura, sprawdz zasady gry" << endl;
+						cout << "nacisnij cokolwiek aby grac dalej" << endl;
+						cout << endl;
+						cout << "Bierki wroca do polozenia z przed tego ruchu";
+						_getch();
+						szachownica[a][b].figura = ruch.figura;
+						break;
+					}
+					if (!nie_bicie_swego_i_krola(ruch.figura, szachownica[x][y].figura))
+					{
+						szachownica[a][b].figura = ruch.figura;
+						break;
+					}
+					promocja_pionka(ruch.figura, x);
+					pom.figura = szachownica[x][y].figura;
+					szachownica[x][y].figura = ruch.figura; // przemieszczenie figury, poprawny ruch
+					zerujaca_pola_szachowane(szachownica);
+					szachowanie_pol(szachownica);
+					if (krol_odkrywa_sie(szachownica, licznik)) // czy krol nie wchodzi na szachowane pole lub odkrywane szachowane pole
+					{
+						szachownica[a][b].figura = ruch.figura;
+						szachownica[x][y].figura = pom.figura;
+						break;
+					}
+					if (sprawdz_szachownice_do_pata_male(szachownica) || sprawdz_szachownice_do_pata_duze(szachownica))
+					{
+						if (sprawdz_czy_pat(szachownica))
+						{
+							wyjscie = 4;
+							break;
+						}
+					}
+					if (sprawdz_czy_mat(szachownica))
+					{
+						if (licznik % 2 == 0)
+						{
+							wyjscie = 2;
+						}
+						else
+							wyjscie = 3;
+						break;
+					}
+					sprawdz_czy_szach(szachownica, licznik, ruch.figura); // sprawdzanie czy jest szach
+					historia_gry.push_back(szachownica);
+					licznik++; // do okreslania czyj ruch
+					break;
+				}
+			}
+			break;
+		}
+	}
+	return wyjscie;
+}
+int _tmain(int argc, _TCHAR* argv[])
+{
+	int wyjscie = 0;
+	cout << "Szachy w konsoli dla dwoch osob, aby rozpoczac gre naciscnij cokolwiek" << endl;
+	cout << "Ale jesli chcesz poznac zasady to przeczytaj to:" << endl;
+	cout << "Chodzi sie strzalkami, bierke pobierasz enterem, aby puscic bierke nacisnij ESC" << endl;
+	cout << "gra bedzie blokowala wszytskie niedozowlone ruchy i poinformuje o wygranej lub szachu" << endl;
+	cout << "Aby zrobic roszade przenies krola o dwie pozycje w strone wiezy z ktora chcesz zrobic roszade" << endl << endl;
+	cout << "Podczas gry beda stosowne komunikaty, zapraszam do gry, nacisnij spacje";
+	_getch();
+	if (sterowanie(wyjscie) == 1)
+	{
+		cout << endl << endl;
+		cout << "Wyszedles z gry" << endl;
+		cout << "Gra zamknie sie po nacisnieciu dowolnego klawisza";
+	}
+	if (sterowanie(wyjscie) == 2)
+	{
+		cout << endl << endl;
+		cout << " Zwyciezyl gracz duzy, koniec gry" << endl;
+		cout << "Gra zamknie sie po nacisnieciu dowolnego klawisza";
+	}
+	if (sterowanie(wyjscie) == 3)
+	{
+		cout << endl << endl;
+		cout << " Zwyciezyl gracz maly, koniec gry" << endl;
+		cout << "Gra zamknie sie po nacisnieciu dowolnego klawisza";
+	}
+	if (sterowanie(wyjscie) == 4)
+	{
+		cout << endl << endl;
+		cout << " Remis, koniec gry" << endl;
+		cout << "Gra zamknie sie po nacisnieciu dowolnego klawisza";
+	}
+	_getch();
+	return 0;
+}
