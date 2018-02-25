@@ -1,0 +1,63 @@
+window.onload = kafelki;
+
+function kafelki()
+{
+    var tresc="";
+    for(var i=0;i<16;i++)
+    {
+        tresc += '<div class="kafelek" onclick=odkrywaj("'+i+'")  id="lit'+i+'"></div>';
+        if ((i+1) % 4 == 0) tresc = tresc + '<div style="clear:both;"></div>';
+    }
+    document.getElementById("plansza").innerHTML = tresc;
+    
+}
+function czy_nalezy (tab, liczba)
+{
+    for(let i=0;i<16;i++)
+    {
+        if(tab[i]==liczba)
+        {
+           return true;
+        }
+    }
+    return false;
+}
+
+function losowanie()
+{
+    var i = 0;
+    var tab = new Array;
+    while(i<16)
+    {
+        var losowa = Math.floor(Math.random() * 16) 
+        if(!czy_nalezy(tab, losowa))
+        {
+            tab[i] = losowa;
+            i++;  
+        } 
+    }
+    return tab;
+}
+var tabula =  losowanie();
+var klikniecia = 0;
+var historia_klik = new Array;
+var historia_kafelkow = new Array;
+function kontroluj(historia_klik, nr, klikniecia, historia_kafelkow)
+{
+    if(klikniecia % 2==1)
+    {
+        if(historia_klik[klikniecia] + historia_klik[klikniecia-1] !=15)
+        {
+            document.getElementById("lit"+historia_kafelkow[klikniecia]).innerHTML = "";
+            document.getElementById("lit"+historia_kafelkow[klikniecia-1]).innerHTML = "";
+        }
+    }
+}
+function odkrywaj(nr)
+{
+    document.getElementById("lit"+nr).innerHTML = tabula[nr];
+    historia_klik[klikniecia] = tabula[nr];
+    historia_kafelkow[klikniecia]= nr;
+    klikniecia++;
+    kontroluj(historia_klik, nr, klikniecia, historia_kafelkow);
+}
