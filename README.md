@@ -1,4 +1,4 @@
-# Programyuzytkowe
+# Programy
 Kamil Schilling
 ## Opis projektu 
-to jest projekten
+rozne rzeczy co tworze
